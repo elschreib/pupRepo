@@ -38,12 +38,11 @@ class ModelWidget(generictab.GenericWidget):
 
         self.sculptFiles_cmb = QtWidgets.QComboBox()
         self.sculpt_files()
-        # self.sculptFiles_cmb.setFixedSize(200,25)
         self.sculptFiles_cmb.setFixedWidth(200)
 
         # self.sculptFiles_cmb.addItems(os.listdir(self.project_dict["sculpt_scene"]))
         self.sculptFilesOpen_btn = QtWidgets.QPushButton("Open")
-
+        self.sculptFilesOpen_btn.setStyleSheet("padding: 0px;")
         self.apex_btn = QtWidgets.QPushButton("Apex")
 
 
@@ -61,8 +60,8 @@ class ModelWidget(generictab.GenericWidget):
 
         sculptExport_layout.addLayout(sculptExport_layout2)
 
-        sculptExport_formLayout = QtWidgets.QFormLayout()
-        sculptExport_formLayout.addRow("Exports:", sculptExport_layout)
+        # sculptExport_formLayout = QtWidgets.QFormLayout()
+        # sculptExport_formLayout.addRow("Exports:", sculptExport_layout)
 
         sep1 = QtWidgets.QHBoxLayout()
         self.add_separator(sep1)
@@ -74,7 +73,8 @@ class ModelWidget(generictab.GenericWidget):
         sculptScene_formLayout = QtWidgets.QFormLayout()
         sculptScene_formLayout.addRow("File:", sculptScene_layout)
 
-        self.main_layout.addLayout(sculptExport_formLayout)
+        self.main_layout.addLayout(self.add_sepNameSep("Sculpt Exports"))
+        self.main_layout.addLayout(sculptExport_layout)
         self.main_layout.addLayout(sep1)
         self.main_layout.addLayout(sculptScene_formLayout)
 
@@ -101,16 +101,17 @@ class ModelWidget(generictab.GenericWidget):
 
     def sculpt_files(self):
         self.sculptFiles_cmb.clear()
+        utilsLib.check_create_dir(self.project_dict["sculpt_scene"])
         self.sculptFiles_cmb.addItems(os.listdir(self.project_dict["sculpt_scene"]))
-        # self.sculptFiles_cmb.resize(self.sculptFiles_cmb.sizeHint())
 
     def refresh_widgets(self):
         self.sculpt_exports()
         self.sculpt_files()
-
+        self.refresh_generic()
 
     def sculpt_exports(self):
         self.sculpt_lst.clear()
+        utilsLib.check_create_dir(self.project_dict["sculpt_export"])
         items = os.listdir(self.project_dict["sculpt_export"])
         for item in items:
             self.sculpt_lst.addItem(item)

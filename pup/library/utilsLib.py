@@ -270,7 +270,9 @@ def aslist(a):
 
 
 
-
+def check_create_dir(path):
+    if not os.path.isdir(path):
+        os.makedirs(path)
 
 
 

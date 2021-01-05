@@ -16,11 +16,9 @@ from . import projectinfo
 
 
 
-
 class GenericWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(GenericWidget, self).__init__(parent)
-
         self.project_dict = None
 
         self.create_generic_widgets()
@@ -33,10 +31,15 @@ class GenericWidget(QtWidgets.QWidget):
         self.folder_btn = QtWidgets.QPushButton("folder")
 
         self.publish_btn = QtWidgets.QPushButton("publish")
-        self.load_btn = QtWidgets.QPushButton("load")
+        self.load_btn = QtWidgets.QPushButton("import")
         self.reference_btn = QtWidgets.QPushButton("ref")
+        self.update_btn = QtWidgets.QPushButton("update")
+        self.variantsType_cmb = QtWidgets.QComboBox()
+        self.variantsType_cmb.addItems(["abc","obj"])
         self.variants_cmb = QtWidgets.QComboBox()
-        self.variants_cmb.addItems(["anim","render"])
+        self.variants_cmb.addItems(["anim"])
+        for btn in [self.publish_btn,self.load_btn,self.reference_btn,self.update_btn]:
+            btn.setStyleSheet("padding: 0px;")
 
 
     def create_generic_layout(self):
@@ -50,7 +53,9 @@ class GenericWidget(QtWidgets.QWidget):
         layout2.addWidget(self.publish_btn)
         layout2.addWidget(self.load_btn)
         layout2.addWidget(self.reference_btn)
+        layout2.addWidget(self.update_btn)
         self.add_separator(layout2)
+        layout2.addWidget(self.variantsType_cmb)
         layout2.addWidget(self.variants_cmb)
 
 
@@ -76,10 +81,13 @@ class GenericWidget(QtWidgets.QWidget):
         self.load_btn.clicked.connect(lambda: load_publish(self.project_dict, self.variants_cmb.currentText()))
         self.reference_btn.clicked.connect(lambda: ref_publish(self.project_dict, self.variants_cmb.currentText()))
 
-    def get_variants(self, path, ignore_files=""):
+    def add_variants(self, path, ignore_files=""):
 
         variants = os.listdir(path)
         variantsClean = utilsLib.remove_items_with(variants)
+
+        if not variantsClean:
+            variantsClean = ["none"]
 
         return variantsClean
 
@@ -87,14 +95,34 @@ class GenericWidget(QtWidgets.QWidget):
         self.project_dict = dict
         # return self.project_dict
 
-    def add_separator(self, layout):
+    def add_separator(self, layout, width=None):
 
         separator = QtWidgets.QFrame()
         separator.setFrameShape(QtWidgets.QFrame.HLine)
+        if width:
+            separator.setFixedWidth(width)
         separator.setFrameShadow(QtWidgets.QFrame.Sunken)
         layout.addWidget(separator)
 
 
+
+    def add_sepNameSep(self, name):
+        label =  QtWidgets.QLabel(name)
+        layout1 = QtWidgets.QHBoxLayout()
+        layout1.addStretch()
+        self.add_separator(layout1,width=150)
+        layout1.addStretch()
+        layout1.addWidget(label)
+        layout1.addStretch()
+        self.add_separator(layout1,width=150)
+        layout1.addStretch()
+        return layout1
+
+
+
+    def refresh_generic(self):
+        self.variants_cmb.clear()
+        self.variants_cmb.addItems(self.add_variants(self.project_dict["publish"]))
 
 
 
@@ -252,27 +280,3 @@ def get_files(path, ignore_files=""):
 
 
 
-# class CustomWidget(generictab.GenericWidget):
-#     def __init__(self, parent=None, info=None):
-#         super(CustomWidget, self).__init__(parent)
-#         # set project info
-#         self.get_project_info(info)
-#
-#         # create generic setup
-#         print
-#         self.project_dict
-#         self.create_widgets()
-#         self.create_layout()
-#         self.create_connections()
-#
-#     def create_widgets(self):
-#         pass
-#
-#     def create_layout(self):
-#         pass
-#
-#     def create_connections(self):
-#         pass
-#
-#     def refresh_widgets(self):
-#         pass

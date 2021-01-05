@@ -7,6 +7,114 @@ from . import utilsLib
 
 
 
+arnoldSurface_dict = {}
+arnoldSurface_dict["DIFF"] = "baseColor"
+arnoldSurface_dict["SPCR"] = "specularRoughness"
+arnoldSurface_dict["METL"] = "metalness"
+arnoldSurface_dict["NRML"] = "normalCamera"
+arnoldSurface_dict["DISP"] = "None"
+arnoldSurface_dict["BUMP"] = "normalCamera"
+arnoldSurface_dict["EMIS"] = "emission"
+
+
+
+
+
+
+
+
+
+def create_arnold_SHD(SHD_name="", DIFF=None, METL=None, SPCR=None, EMIS=None, NRML=None, BUMP=None, DISP=None):
+    """
+
+    :param path:
+    :param DIFF:
+    :param METL:
+    :param SPCR:
+    :param EMIS:
+    :param NRML:
+    :param HEGT:
+    :return:
+    """
+
+    MAT = cmds.createNode("aiStandardSurface", name=SHD_name)
+    SG = SG_to_material(MAT)
+
+    MAT_dict = arnoldSurface_dict
+
+    if DIFF:
+        created_FILE = file_node(SHD_name, input="DIFF", texture=DIFF)
+        cmds.connectAttr('{0}.outColor'.format(created_FILE), '{0}.{1}'.format(MAT, MAT_dict["DIFF"]))
+    if METL:
+        created_FILE = file_node(SHD_name, input="METL", texture=METL)
+        cmds.connectAttr('{0}.outColorR'.format(created_FILE), '{0}.{1}'.format(MAT, MAT_dict["METL"]))
+    if EMIS:
+        created_FILE = file_node(SHD_name, input="EMIS", texture=EMIS)
+        cmds.connectAttr('{0}.outColorR'.format(created_FILE), '{0}.{1}'.format(MAT, MAT_dict["EMIS"]))
+    if SPCR:
+        created_FILE = file_node(SHD_name, input="SPCR", texture=SPCR)
+        cmds.connectAttr('{0}.outColorR'.format(created_FILE), '{0}.{1}'.format(MAT, MAT_dict["SPCR"]))
+    if NRML:
+        if not BUMP:
+            create_BMP2 = cmds.createNode("bump2d", name=SHD_name + "_NORM_BMP2")
+            cmds.setAttr(create_BMP2 + ".bumpInterp", 1)
+            cmds.connectAttr(create_BMP2 + ".outNormal", '{0}.{1}'.format(MAT, MAT_dict["NRML"]), f=True)
+            created_FILE = file_node(SHD_name, input="NORM", texture=NRML)
+            cmds.connectAttr(created_FILE + ".outAlpha", create_BMP2 + ".bumpValue")
+    if BUMP:
+        create_BMP2 = cmds.createNode("bump2d", name=SHD_name + "_BUMP_BMP2")
+        cmds.connectAttr(create_BMP2 + ".outNormal", '{0}.{1}'.format(MAT, MAT_dict["BUMP"]), f=True)
+        created_FILE = file_node(SHD_name, input="BUMP", texture=BUMP)
+        cmds.connectAttr(created_FILE + ".outAlpha", create_BMP2 + ".bumpValue")
+    if NRML and BUMP:
+        utilsLib.print_error("BUMP AND NORMAL EXIST: ONLY ATTACHED BUMP")
+
+
+    return MAT
+
+
+
+
+
+def file_node(shading_node, input=None, texture=None):
+    name = input if input else "generic"
+    SHD_name = shading_node if shading_node else "user"
+    textureNode = cmds.shadingNode('file', name='{0}_{1}_file'.format(shading_node, name), asTexture=True)
+    utilityNode = cmds.shadingNode('place2dTexture', name='{0}_{1}_place2D'.format(shading_node, name), asUtility=True)
+
+    attrs = ('coverage', 'translateFrame', 'rotateFrame', 'mirrorU', 'mirrorV', 'stagger', 'wrapU',
+             'wrapV', 'repeatUV', 'offset', 'rotateUV', 'noiseUV', 'vertexUvOne', 'vertexUvTwo',
+             'vertexUvThree', 'vertexCameraOne'
+             )
+
+    for attr in attrs:
+        cmds.connectAttr('{0}.{1}'.format(utilityNode, attr), '{0}.{1}'.format(textureNode, attr))
+
+    cmds.connectAttr('{0}.outUV'.format(utilityNode), '{0}.uv'.format(textureNode))
+    cmds.connectAttr('{0}.outUvFilterSize'.format(utilityNode), '{0}.uvFilterSize'.format(textureNode))
+
+    # cmds.connectAttr('{0}.outColor'.format(textureNode), '{0}.color'.format(shading_node))
+
+    if texture:
+        cmds.setAttr('{0}.fileTextureName'.format(textureNode), texture, type='string')
+
+    return textureNode
+
+ # # find and set UV map:
+ # if uvSet:
+ # for index in range(0, 4): # ['map1', 'rigBody', 'fur']
+ # for geo in geometry:
+ # if cmds.objExists(geo):
+ # geoShape = cmds.listRelatives(geo, shapes=True)[0]
+ #
+ # uvName = cmds.getAttr('{0}.uvSet[{1}].uvSetName'.format(geoShape, index))
+ #
+ # if uvName == uvSet:
+ # cmds.uvLink(uvSet='{0}.uvSet[{1}].uvSetName'.format(geoShape, index),
+ # texture=textureNode)
+
+
+
 
 
 
@@ -25,6 +133,7 @@ def shader_from_shape(shape):
 
     return material
 
+
 def SG_to_material(material):
 
     """
@@ -34,7 +143,7 @@ def SG_to_material(material):
     :return: new_SG
     """
 
-    new_SG = pm.sets(renderable=True, noSurfaceShader=True, empty=True, name="skin_SHDSG")
+    new_SG = pm.sets(renderable=True, noSurfaceShader=True, empty=True, name=material+"SG")
     pm.connectAttr(material + ".outColor", new_SG + ".surfaceShader")
 
     return new_SG
@@ -73,6 +182,7 @@ def export_materials(geos, path, name="shaders"):
 
     return mat_dict
 
+
 def import_materials(path):
     """
     import materials from path - .json == {"head_SHD":["head_geo"], "poo_SHD":["shit_geo"]}
@@ -94,12 +204,16 @@ def import_materials(path):
         mat_SG = SG_to_material(shader_name)
         # add geo to shader
         for geo in geos:
-            geo_check = cmds.ls(geo)
-            if geo_check:
-                pm.sets(mat_SG, forceElement=geo)
-            else:
-                print "no geo named "+geo
+            add_geo_to_shader(mat_SG, geo)
 
+
+def add_geo_to_shader(SG, geo):
+    geo_check = cmds.ls(geo)
+    if geo_check:
+        pm.sets(SG, forceElement=geo)
+    else:
+        print
+        "no geo named " + geo
 
 
 

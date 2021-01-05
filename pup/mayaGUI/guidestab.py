@@ -50,6 +50,7 @@ class GuidesWidget(generictab.GenericWidget):
         self.loadGuide_btn.clicked.connect(self.namespace_text)
 
     def refresh_widgets(self):
+        self.refresh_generic()
         self.guidesLib_cmb.clear()
         self.guidesLib_cmb.addItems(generictab.get_files(self.project_dict["guides"], ignore_files=[".mayaSwatches", "__init__.py"]))
 

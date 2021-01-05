@@ -17,11 +17,17 @@ from ..tool import characterSetup
 from . import generictab
 from . import guidestab
 from . import modeltab
+from . import texturetab
+from . import lookdevtab
+from . import lightingtab
 
 reload(projectinfo)
 reload(generictab)
 reload(guidestab)
 reload(modeltab)
+reload(texturetab)
+reload(lookdevtab)
+reload(lightingtab)
 
 PROJECTS_FOLDER = projectinfo.get_project_path()
 
@@ -95,13 +101,21 @@ class PupUI(QtWidgets.QDialog):
         self.model_wdg = modeltab.ModelWidget(info=projectinfo.project_info(self.project_cmb.currentText(),
                                                                    self.asset_cmb.currentText(),
                                                                    step="model"))
+        self.texture_wdg = texturetab.TextureWidget(info=projectinfo.project_info(self.project_cmb.currentText(),
+                                                                   self.asset_cmb.currentText(),
+                                                                   step="texture"))
         self.rigging_wdg = RiggingWidget(info=projectinfo.project_info(self.project_cmb.currentText(),
                                                                        self.asset_cmb.currentText(),
                                                                        step="rigging"))
         self.guides_wdg = guidestab.GuidesWidget(info=projectinfo.project_info(self.project_cmb.currentText(),
                                                                        self.asset_cmb.currentText(),
                                                                        step="guides"))
-
+        self.lookdev_wdg = lookdevtab.LookdevWidget(info=projectinfo.project_info(self.project_cmb.currentText(),
+                                                                   self.asset_cmb.currentText(),
+                                                                   step="lookdev"))
+        self.lighting_wdg = lightingtab.LightingWidget(info=projectinfo.project_info(self.project_cmb.currentText(),
+                                                                   self.asset_cmb.currentText(),
+                                                                   step="lighting"))
         self.tab_widget = QtWidgets.QTabWidget()
         # self.tab_widget.setAutoFillBackground(True)
         #
@@ -110,8 +124,12 @@ class PupUI(QtWidgets.QDialog):
         # self.tab_widget.setPalette(palette)
 
         self.tab_widget.addTab(self.model_wdg,"model")
+        self.tab_widget.addTab(self.texture_wdg,"texture")
         self.tab_widget.addTab(self.rigging_wdg,"rigging")
         self.tab_widget.addTab(self.guides_wdg,"guides")
+        self.tab_widget.addTab(self.lookdev_wdg,"lookdev")
+        self.tab_widget.addTab(self.lighting_wdg,"lighting")
+
         self.tab_index = self.tab_widget.currentIndex()
 
         self.tab_names = ["model", "rigging", "guides"]
@@ -128,14 +146,21 @@ class PupUI(QtWidgets.QDialog):
         # model
         self.model_wdg.get_project_info(projectinfo.project_info(self.project_cmb.currentText(),self.asset_cmb.currentText(),step="model"))
         self.model_wdg.refresh_widgets()
-
+        # texture
+        self.texture_wdg.get_project_info(projectinfo.project_info(self.project_cmb.currentText(),self.asset_cmb.currentText(),step="texture"))
+        self.texture_wdg.refresh_widgets()
         # rigging
         self.rigging_wdg.get_project_info(projectinfo.project_info(self.project_cmb.currentText(),self.asset_cmb.currentText(),step="rigging"))
         self.rigging_wdg.refresh_widgets()
         # guides
         self.guides_wdg.get_project_info(projectinfo.project_info(self.project_cmb.currentText(),self.asset_cmb.currentText(),step="guides"))
         self.guides_wdg.refresh_widgets()
-
+        # lookdev
+        self.lookdev_wdg.get_project_info(projectinfo.project_info(self.project_cmb.currentText(),self.asset_cmb.currentText(),step="lookdev"))
+        self.lookdev_wdg.refresh_widgets()
+        # guides
+        self.lighting_wdg.get_project_info(projectinfo.project_info(self.project_cmb.currentText(),self.asset_cmb.currentText(),step="lighting"))
+        self.lighting_wdg.refresh_widgets()
     def project_refresh(self):
         self.project_cmb.clear()
         self.project_cmb.addItems(self.get_files(PROJECTS_FOLDER))
@@ -246,6 +271,10 @@ def create_asset(path, asset):
                     os.makedirs(path + "work/" + "sculpt")
                     os.makedirs(path + "work/sculpt/" + "export")
                     os.makedirs(path + "work/sculpt/" + "scene")
+                if folder == "texture":
+                    os.makedirs(path + "work/" + "painter")
+                    os.makedirs(path + "work/painter/" + "export")
+                    os.makedirs(path + "work/painter/" + "scene")
         utilsLib.print_it("---%s--- asset folder structure created"%asset)
 # class GenericWidget(QtWidgets.QWidget):
 #     def __init__(self, parent=None):
